@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Smart CPR Cloud Dashboard</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+    <style>
+        /* CSS ยกมาจากของเดิมของคุณทั้งหมด เพื่อให้หน้าตาเหมือนเดิม */
+        * { margin:0; padding:0; box-sizing:border-box; font-family:Arial; }
+        body { background:#020d2b; color:white; padding:18px; text-align:center; }
+        h1 { font-size:42px; margin-bottom:20px; }
+        .circle { width:220px; height:220px; border-radius:50%; border:10px solid #facc15; background:#facc15; margin:auto; display:flex; justify-content:center; align-items:center; box-shadow:0 0 40px rgba(250,204,21,0.9); font-size:34px; font-weight:bold; }
+        .forceLabel { font-size:20px; opacity:0.8; }
+        .grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:25px; }
+        .card { background:#1e2a45; padding:20px; border-radius:24px; }
+        .cardTitle { font-size:15px; opacity:0.8; }
+        .cardValue { font-size:32px; font-weight:bold; margin-top:10px; }
+        .btn-danger { background:#ef4444; margin-top:28px; width:100%; padding:18px; border:none; border-radius:22px; color:white; font-size:24px; font-weight:bold; cursor:pointer;}
+    </style>
+</head>
+<body>
+
+    <h1>SMART CPR (CLOUD)</h1>
+
+    <div class="circle" id="circle">
+        <div class="forceLabel" id="levelText">CPR LEVEL</div>
+    </div>
+
+    <div class="grid">
+        <div class="card"><div class="cardTitle">TOTAL</div><div class="cardValue" id="total">0</div></div>
+        <div class="card"><div class="cardTitle">CORRECT</div><div class="cardValue" id="correct">0</div></div>
+        <div class="card"><div class="cardTitle">TOO HARD</div><div class="cardValue" id="tooHard">0</div></div>
+        <div class="card"><div class="cardTitle">FULL RELEASE</div><div class="cardValue" id="release">0</div></div>
+        <div class="card"><div class="cardTitle">ACCURACY</div><div class="cardValue"><span id="acc">0</span>%</div></div>
+        <div class="card"><div class="cardTitle">BPM</div><div class="cardValue" id="bpm">0</div></div>
+        <div class="card"><div class="cardTitle">PAUSE</div><div class="cardValue"><span id="pause">0</span>s</div></div>
+        <div class="card"><div class="cardTitle">CYCLE</div><div class="cardValue" id="cycle">1</div></div>
+        <div class="card"><div class="cardTitle">BPM STATUS</div><div class="cardValue" id="bpmStatus">READY</div></div>
+    </div>
+
+    <button class="btn-danger" onclick="showSummary()">VIEW FINAL SUMMARY</button>
+
+    <script>
+        // TODO: นำค่าคอนฟิกมาจาก Firebase Console ของคุณมาใส่ตรงนี้
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+        
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        // ดึงข้อมูลแบบ Real-time (ฟังก์ชัน on('value') จะทำงานอัตโนมัติเมื่อมีข้อมูลบน Cloud เปลี่ยนแปลง)
+        database.ref('/cpr_live').on('value', (snapshot) => {
+            const data = snapshot.val();
+            if(!data) return;
+
+            // อัปเดต UI 
+            document.getElementById("total").innerHTML = data.total;
+            document.getElementById("correct").innerHTML = data.correct;
+            document.getElementById("tooHard").innerHTML = data.tooHard;
+            document.getElementById("release").innerHTML = data.release;
+            document.getElementById("acc").innerHTML = Math.round(data.acc);
+            document.getElementById("bpm").innerHTML = Math.round(data.bpm);
+            document.getElementById("pause").innerHTML = Math.round(data.pause);
+            document.getElementById("cycle").innerHTML = data.cycle;
+            document.getElementById("bpmStatus").innerHTML = data.bpmStatus;
+
+            let circle = document.getElementById("circle");
+            let text = document.getElementById("levelText");
+
+            if(data.level <= 4){
+                circle.style.background = "#facc15";
+                circle.style.borderColor = "#facc15";
+                circle.style.boxShadow = "0 0 40px rgba(250,204,21,0.9)";
+                text.style.color = "#000000";
+            } else if(data.level == 5){
+                circle.style.background = "#22c55e";
+                circle.style.borderColor = "#22c55e";
+                circle.style.boxShadow = "0 0 40px rgba(34,197,94,0.9)";
+                text.style.color = "#ffffff";
+            } else {
+                circle.style.background = "#ef4444";
+                circle.style.borderColor = "#ef4444";
+                circle.style.boxShadow = "0 0 40px rgba(239,68,68,0.9)";
+                text.style.color = "#ffffff";
+            }
+        });
+
+        function showSummary() {
+            // คุณสามารถเขียนสั่งเปลี่ยนหน้าไปหน้า summary.html หรือดึงข้อมูลมาแสดงเป็นกล่อง Alert แจ้งเตือนตรงนี้ได้เลย
+            alert("สามารถสร้างหน้า Summary แยกเพิ่มเพื่อดึงค่าประวัติมาแสดงผลได้");
+        }
+    </script>
+</body>
+</html>
